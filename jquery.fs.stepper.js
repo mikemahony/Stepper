@@ -1,10 +1,12 @@
-/*
- * Stepper v3.0.7 - 2014-11-25
- * A jQuery plugin for cross browser number inputs. Part of the Formstone Library.
- * http://formstone.it/stepper/
- *
+/* 
+ * Stepper v3.0.8 - 2014-05-07 
+ * A jQuery plugin for cross browser number inputs. Part of the Formstone Library. 
+ * http://formstone.it/stepper/ 
+ * 
  * Copyright 2014 Ben Plum; MIT Licensed
- */
+ * 
+ * Modified by Robert Abramski
+ */ 
 
 ;(function ($, window) {
 	"use strict";
@@ -12,15 +14,18 @@
 	/**
 	 * @options
 	 * @param customClass [string] <''> "Class applied to instance"
-	 * @param lables.up [string] <'Up'> "Up arrow label"
-	 * @param lables.down [string] <'Down'> "Down arrow label"
+	 * @param labels.up [string] <'Up'> "Up arrow label"
+	 * @param labels.down [string] <'Down'> "Down arrow label"
+	 * @param buttons.up [jQuery object] <null> "Button up element"
+	 * @param buttons.down [jQuery object] <null> "Button down element"
 	 */
 	var options = {
 		customClass: "",
 		labels: {
 			up: "Up",
 			down: "Down"
-		}
+		},
+		buttons: {up: null, down: null}
 	};
 
 	var pub = {
@@ -34,7 +39,7 @@
 		 */
 		defaults: function(opts) {
 			options = $.extend(options, opts || {});
-			return (typeof this === 'object') ? $(this) : true;
+			return $(this);
 		},
 
 		/**
@@ -117,7 +122,7 @@
 	 * @method private
 	 * @name _build
 	 * @description Builds each instance
-	 * @param $select [jQuery object] "Target jQuery object"
+	 * @param $input [jQuery object] "Target jQuery object"
 	 * @param opts [object] <{}> "Options object"
 	 */
 	function _build($input, opts) {
@@ -129,11 +134,29 @@
 			var min = parseFloat($input.attr("min")),
 				max = parseFloat($input.attr("max")),
 				step = parseFloat($input.attr("step")) || 1;
+				
+			// Allow options to override element.
+			if(opts.max) $input.attr("max", opts.max);
+			if(opts.min) $input.attr("min", opts.min);
+			if(opts.step) $input.attr("step", opts.step);
 
 			// Modify DOM
 			$input.addClass("stepper-input")
-				  .wrap('<div class="stepper ' + opts.customClass + '" />')
-				  .after('<span class="stepper-arrow up">' + opts.labels.up + '</span><span class="stepper-arrow down">' + opts.labels.down + '</span>');
+				  .wrap('<div class="stepper ' + opts.customClass + '" />');
+				
+			if(opts.buttons.up && opts.buttons.up instanceof jQuery) {
+				opts.buttons.up.addClass('stepper-arrow up');
+				$input.parent().append(opts.buttons.up);
+			} else {
+				$input.after('<span class="stepper-arrow up">' + opts.labels.up + '</span>');
+			}
+			
+			if(opts.buttons.down  && opts.buttons.down instanceof jQuery) {
+				opts.buttons.down.addClass('stepper-arrow down');
+				$input.parent().append(opts.buttons.down);
+			} else {
+				$input.after('<span class="stepper-arrow down">' + opts.labels.down + '</span>');
+			}
 
 			// Store data
 			var $stepper = $input.parent(".stepper"),
@@ -158,10 +181,8 @@
 			$stepper.on("keypress", ".stepper-input", data, _onKeyup);
 
 			// Bind click events
-			$stepper.on("touchstart.stepper mousedown.stepper", ".stepper-arrow", data, _onMouseDown);
-
-			// Store data on the element itself
-			$input.data("stepper", data);
+			$stepper.on("touchstart.stepper mousedown.stepper", ".stepper-arrow", data, _onMouseDown)
+					.data("stepper", data);
 		}
 	}
 
